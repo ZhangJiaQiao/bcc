@@ -190,8 +190,10 @@ static inline void update_statistics_del(u64 stack_id, u64 sz) {
                 return;
 
         if (existing_cinfo->number_of_allocs > 1) {
-                __sync_fetch_and_sub(&existing_cinfo->total_size, sz);
-                __sync_fetch_and_sub(&existing_cinfo->number_of_allocs, 1);
+                // __sync_fetch_and_sub(&existing_cinfo->total_size, sz);
+                // __sync_fetch_and_sub(&existing_cinfo->number_of_allocs, 1);
+                existing_cinfo->total_size -= sz;
+                existing_cinfo->number_of_allocs--;
         } else {
                 combined_allocs.delete(&stack_id);
         }
@@ -320,7 +322,7 @@ int posix_memalign_exit(struct pt_regs *ctx) {
 
         memptrs.delete(&tid);
 
-        if (bpf_probe_read_user(&addr, sizeof(void*), (void*)(size_t)*memptr64))
+        if (bpf_probe_read(&addr, sizeof(void*), (void*)(size_t)*memptr64))
                 return 0;
 
         u64 addr64 = (u64)(size_t)addr;
